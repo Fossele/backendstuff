@@ -20,10 +20,33 @@ const registerUser = async(req, res) =>{
     }
        // create user  
     const user = await User.create({username, email: email.toLowerCase(), password, loggedIn: false,});
-    res.status(200).json({message: "User registered" , user: { id:user._id , email: user.email, username: user.username}});
+    res.status(201).json({message: "User registered" , user: { id:user._id , email: user.email, username: user.username}});
 
     } catch (error) {
         return res.status(500).json({message:"internal server failure"});
     }
-    
 } 
+
+const loginUser = async(req, res)=>{
+    try {
+    //check if user exist
+    const {email , password} = req.body;
+    const user = await  User.findOne({email: email.toLowerCase()});
+    if(!user){
+        return res.status(400).json({message: 'user not found in our system.'})
+    }
+    const isMatch = await user.comparePassword(password);
+    if(!isMatch) return res.status(400).json({message: 'Invalid password'});
+
+    return res.status(200).json({message: "User logged In", user:{id: user._id, email: user.email, username: user.username}});
+     
+    } catch (error){
+        res.status(500).json({message:"Internal server error"});
+    }
+    
+    
+}
+
+export {
+    registerUser, loginUser
+}
